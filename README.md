@@ -1,172 +1,63 @@
-# Supreme - Slimefun 6 (Drake Framework Port)
-### *Epic Resources and Gear for 1.21.11*
+# Supreme Drake
 
-Este addon ha sido portado y optimizado como parte del ecosistema **Slimefun 6** dentro del **Drake Framework**.
+Supreme Drake es el port mantenido de Supreme para el stack de Slimefun de
+DrakesCraft Labs. Añade recursos de alto nivel, maquinaria, generación de
+energía, canteras y progresión de equipo sin cambiar los IDs ni las recetas que
+ya existen en mundos activos.
 
----
+## Runtime compatible
 
-## 🤝 Créditos y Autoría
-- **Autor Original**: [RelativoBR](https://github.com/RelativoBR)
-- **Port a 1.21.11 (fork Drake):** [DrakesCraft-Labs](https://github.com/DrakesCraft-Labs)
+| Componente | Objetivo |
+|---|---|
+| Minecraft / Paper / Purpur | **1.21.11** |
+| Java | **21** |
+| Slimefun | **Slimefun Drake 11** |
+| API de compilación | `paper-api 1.21.1-R0.1-SNAPSHOT` |
 
----
+La coordenada Maven de Paper conserva la línea `1.21.1`; el runtime objetivo
+es Paper/Purpur 1.21.11 con el core Drake. No sustituir Slimefun Drake por el
+upstream: este addon depende de namespaces y contratos relocalizados.
 
-# Supreme
-Supreme is an addon for Slimefun which adds 100+ various new resources that will allow you to craft powerful new items, weapons, tools and armor. These can be made up from titanium, aurum, adamantium, thornium with some being magical, rare, epic, legendary or supreme! It also adds 12 new electric generators, 5 new capacitors and even more... 
+## Contenido
 
-## Requirements
+- Recursos y aleaciones de progresión: aurum, titanio, adamantium y thornium.
+- Máquinas de fabricación, fundición, mutación y automatización.
+- Generadores, capacitores, canteras y sistemas virtuales de recolección.
+- Herramientas, armas y armaduras configurables para el tramo avanzado.
 
-Minecraft Version: +1.17
+Las familias de generación, canteras y equipo pueden regularse desde
+`plugins/Supreme/config.yml`. Revisa economía y balance antes de habilitar una
+familia de producción nueva en un mundo activo.
 
+## Trabajo Drake
 
+- Port y compilación reproducible para Java 21 y Paper 1.21.11.
+- Dependencias explícitas al core Slimefun Drake.
+- Sin autoactualizador remoto ni descarga de artefactos en caliente.
+- Conservación de IDs, recetas, claves de datos y configuración existente.
+- Validación de artefacto previa a un despliegue; nunca se reemplaza el JAR en
+  producción sin rollback verificable.
 
-### [Download](https://blob.build/project/Supreme)
-[![Build Status](https://thebusybiscuit.github.io/builds/RelativoBR/Supreme/main/badge.svg)](https://blob.build/project/Supreme)
+## Actualización segura
 
+1. Respalda `plugins/Supreme-drake.jar` y `plugins/Supreme/`.
+2. Compila y conserva el checksum del JAR candidato.
+3. En staging, abre una máquina colocada, una cantera y un ítem legacy.
+4. Instala **un solo** JAR de Supreme durante una ventana de reinicio.
+5. Conserva el JAR anterior hasta validar carga, recetas y datos de bloque.
 
-## Bugs/Suggestions
+No instales a la vez el addon upstream y este port: comparten identidad y
+contenido lógico.
 
-Make a new issue, pull request, or discord Slimefun-Addon-Community
+## Desarrollo
 
-<p>
-  <a href="https://discord.gg/slimefun">
-    <img src="https://discordapp.com/api/guilds/565557184348422174/widget.png?style=banner3" alt="Discord Invite"/>
-  </a>
-  <a href="https://discord.gg/SqD3gg5SAU">
-    <img src="https://discordapp.com/api/guilds/809178621424041997/widget.png?style=banner3" alt="Discord Invite"/>
-  </a>
-</p>
+```bash
+mvn -B -ntp clean verify
+```
 
+Artefacto: `target/Supreme-drake.jar`.
 
-## Machines
-- **Core Fabricator** - MultiBlock Machine - You can craft core here
-- **Gear Fabricator** - MultiBlock Machine - You can craft weapons, armor and tools here
-- **Magical Fabricator** - MultiBlock Machine - You can craft magical here
-- **Electric Core Machine** - Craft resource of core
-- **Electric Magical Machine** - Craft resource of magical
-- **Forge Ingot** - This machine allows you to forge ingot resources
-- **Forge Magical** - This machine allows you to forge magical resources
-- **Foundry** - Foundry and Synthesizer Items
-- **Magic Altar** - Craft Rune and Magical Items
-- **Mob Collector** - This machine allows you to collect items from nearby mobs
-- **Virtual Aquarium** - This machine allows you to collect items that are collected at sea
-- **Virtual Garden** - This machine allows you to cultivate some resources
-- **MobTech Collector** - This machine allows you to collect mobs nearby, an item used to increase the performance of machines, whether reducing time, increasing production or saving energy.
-- **Tech Mutation** - Generator mutation to progress mobtech (heads) to higher levels, through mutation types, where there is a success probability depending on the machine level that varies from 20% to 25% in tier I and from 80% to 100% in tier III.
-- **Tech Robotic** - Similar to the previous mutation machine, but it doesn't deal with luck, it works with science where a specific amount of resources can be used to evolve the mobtech, being 64x for tier I, tier II with 32 and tier III with 16x
-- **Tech Generator** - Using power and a specific crafting card to generate materials slowly, but with mobtech the bees, golem and zombie, mutant or robotics can speed up this process to more satisfying levels
-- **CheckInventory** - A lamp that helps you see if a certain item and amound is present in a chest
-- **Cobblestone Quarry** - Generate Cobblestone
-- **Coal Quarry** - Generate basic resource
-- **Iron Quarry** - Generate basic resource
-- **Gold Quarry** - Generate basic resource
-- **Diamond Quarry** - Generate basic resource
-- **Thornium Quarry** - Generate advanced resource
-- **Nuggets of Supreme Quarry** - Generate advanced resource
+## Procedencia
 
-
-## Generators
-- **Aurum Capacitor** 
-- **Titanium Capacitor** 
-- **Adamantium Capacitor** 
-- **Thornium Capacitor** 
-- **Supreme Capacitor**
-- **GeneratorMob** - Generates energy from methane generated by animals
-- **Basic Ignis Generator** - Need fire under this block to work
-- **Ignis Generator** - Need fire under this block to work
-- **Basic Ventus Generator** - It needs to be with its faces in the wind to work
-- **Ventus Generator** - It needs to be with its faces in the wind to work
-- **Basic Aqua Generator** - Need water under this block to work
-- **Aqua Generator** - Need water under this block to work
-- **Basic Lux Generator** - Needs to receive sunlight for moonlight to work
-- **Lux Generator** - Needs to receive sunlight for moonlight to work
-- **Basic Lumium Generator** - Needs to be below ground to work
-- **Lumium Generator** - Needs to be below ground to work
-- **Thornium Generator** - Generates energy anywhere
-- **Supreme Generator** - Generates energy anywhere
-
-
-## Gear / Tools
-- **Aurum Tools** - Basic tier
-- **Aurum Weapons** - Basic tier
-- **Aurum Armor** - Basic tier
-- **Titanium Tools** - Basic tier
-- **Titanium Weapons** - Basic tier
-- **Titanium Armor** - Basic tier
-- **Adamantium Tools** - Basic tier
-- **Adamantium Weapons** - Basic tier
-- **Adamantium Armor** - Basic tier
-- **Thornium Tools** - Advanced tier
-- **Thornium Weapons** - Advanced tier
-- **Thornium Armor** - Advanced tier
-- **Magic Tools** - Advanced tier
-- **Magic Weapons** - Advanced tier
-- **Magic Armor** - Advanced tier
-- **Rare Tools** - Advanced tier
-- **Rare Weapons** - Advanced tier
-- **Rare Armor** - Advanced tier
-- **Epic Tools** - Endgame tier
-- **Epic Weapons** - Endgame tier
-- **Epic Armor** - Endgame tier
-- **Legendary Tools** - Endgame tier
-- **Legendary Weapons** - Endgame tier
-- **Legendary Armor** - Endgame tier
-- **Supreme Tools** - Endgame tier
-- **Supreme Weapons** - Endgame tier
-- **Supreme Armor** - Endgame tier
-
-
-## Resource Core
-- **Core of Life** - This core contains fragments of life that have been collected by the world
-- **Core of Death** - This core contains the souls of various entities that have gone beyond
-- **Core of Color** - This core contains several colors that have been collected around the world
-- **Core of Block** - This core contains several blocks that have been collected around the world
-- **Core of Nature** - This core contains several natural that have been collected around the world
-- **Core of Alloy** - This core contains several ores that have been collected around the world
-
-
-## Resource Magical
-- **Cetrus Lux** - A super Lux scepter
-- **Cetrus Ventus** - A super Ventus scepter
-- **Cetrus Lumium** - A super Lumium scepter
-- **Cetrus Aqua** - A super Aqua scepter
-- **Cetrus Ignis** - A super Ignis scepter
-- **Attribute Magic** - A super Magic attribute with special effect
-- **Attribute Bomb** - A super Bomb attribute with special effects
-- **Attribute Fortune** - A super Fortune attribute with special effects
-- **Attribute Impetus** - A super Impetus attribute with special effects
-
-
-## Customize Configuration (config.yml)
-
-- **use-legacy-supremeexpansion-item-id** - Indication use compatibily old item from addon SupremeExpanssion (default: false)
-- **enable-generators** - Indication whether to enable the power generators (default: true)
-- **limit-production-generators** - To reduce the efficiency of generators (factor 5x) (default: false)
-- **delay-time-valid-generators** - Configuration for validation waiting time if a generator must be turned off, due to the change of nearby blocks (default: 600)
-- **enable-quarry** - Indication whether to enable the quarry machine (default: true)
-- **limit-production-quarry** - To reduce quarry production (hard mode 50% failure) (default: false)
-- **custom-ticker-delay** - To change the quarry production delay (default: 2)
-- **base-time-virtual-garden** - To change the Virtual Garden base processing time (default: 15)
-- **base-time-virtual-aquarium** - To change the Virtual Aquarium base processing time (default: 15)
-- **base-time-mob-collector** - To change the Mob Collector base processing time (default: 15)
-- **base-time-tech-generator** - To change the Tech Generator base processing time (default: 1800)
-- **tech-generator-max-amount** - To change the Tech Generator base result item amount (default: 64)
-- **machine-max-attempt-consumed** - To change the Electric Machines max attempt consumed item retry (default: 30)
-- **mob-tech-enable-bee** - Indication whether to enable the Bee in Mob Tech (default: true)
-- **mob-tech-enable-iron-golem** - Indication whether to enable the Iron Golem in Mob Tech (default: true)
-- **mob-tech-enable-zombie** - Indication whether to enable the Zombie in Mob Tech (default: true)
-- **quarry-custom-output** - Can be adjusted all item productions in Quarry
-- **enable-weapons** - Indication whether to enable the weapons (default: true)
-- **enable-tools** - Indication whether to enable the tools (default: true)
-- **enable-armor** - Indication whether to enable the armor (default: true)
-- **enable-tech** - Indication whether to enable new machine and resource to clonnig item (default: true)
-- **supreme-enchant** - Indication Enchantment of the gear and tools
-- **supreme-effects** - Indication Effects of the gear
-- **power-section** - Customizable Capacity, Buffer and Energy of the capacitor and generator
-
-<!-- DRAKES-STATUS:BEGIN -->
-> Estado de sincronizacion: **2026-04-24**.
-> Baseline tecnico vigente: **Paper 1.21.1 + Java 21**.
-> CI principal en `main`: **Gates 1-5 en verde**.
-> Nota: el monorepo completo sigue en migracion incremental por lotes.
-<!-- DRAKES-STATUS:END -->
+Proyecto original de RelativoBR. Este fork preserva la autoría upstream y añade
+mantenimiento, compatibilidad y operación para DrakesCraft Labs.
