@@ -1,7 +1,6 @@
 package com.github.relativobr.supreme;
 
 
-import com.github.drakescraft_labs.labupdate.DrakesLabsReleaseUpdate;
 import static com.github.relativobr.supreme.util.CompatibilySupremeLegacy.loadComponents;
 import static com.github.relativobr.supreme.util.CompatibilySupremeLegacy.loadCoreResource;
 import static com.github.relativobr.supreme.util.CompatibilySupremeLegacy.loadGear;
@@ -14,7 +13,6 @@ import com.github.relativobr.supreme.util.SupremeOptions;
 import com.github.relativobr.supreme.util.SupremePowerSection;
 import com.github.drakescraft_labs.slimefun4.api.SlimefunAddon;
 import com.github.drakescraft_labs.slimefun4.libraries.dough.config.Config;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.updater.BlobBuildUpdater;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -136,9 +134,6 @@ public class Supreme extends JavaPlugin implements SlimefunAddon {
 
   @Override
   public void onEnable() {
-        DrakesLabsReleaseUpdate.schedule(this, "Supreme-drake");
-
-
     instance = this;
 
     Supreme.inst().log(Level.INFO, "########################################");
@@ -150,12 +145,6 @@ public class Supreme extends JavaPlugin implements SlimefunAddon {
       log(Level.SEVERE, "Config section \"options\" missing, Check your config and report this!");
       inst().onDisable();
       return;
-    }
-
-		var autoUpdate = getSupremeOptions().isAutoUpdate() && getDescription().getVersion().startsWith("Dev");
-		Supreme.inst().log(Level.INFO, "auto-update: " + autoUpdate);
-    if (autoUpdate) {
-      new BlobBuildUpdater(this, getFile(), "Supreme", "Dev").start();
     }
 
     // localization
