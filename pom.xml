@@ -12,7 +12,7 @@
 
     <groupId>com.github.drakescraft_labs</groupId>
     <artifactId>Supreme-drake</artifactId>
-    <version>MODIFIED</version>
+    <version>1.21.11-Drake.1</version>
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
@@ -182,4 +182,3 @@
     </build>
 
 </project>
-
