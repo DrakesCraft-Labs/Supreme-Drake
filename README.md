@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/DrakesCraft-Labs/Supreme-Drake/main/supreme_banner.svg" alt="Supreme-Drake Banner" width="920" />
+![Supreme-Drake Banner](./supreme_banner.svg)
 
 # 👑 Supreme-Drake
 
