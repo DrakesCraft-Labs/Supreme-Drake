@@ -58,12 +58,12 @@
 mvn clean package
 ```
 
-Ubica el archivo compilado `Supreme-Drake-v2.1.0.jar` en la carpeta `plugins/` de tu servidor Minecraft Paper/Purpur 1.21.11.
+Ubica el archivo compilado `Supreme-Drake-v2.1.0.jar` en la folder `plugins/` de tu servidor Minecraft Paper/Purpur 1.21.11.
 
 ---
 
 <div align="center">
 
-**DrakesCraft Labs** · Maintained by [**JackStar6677-1**](https://github.com/JackStar6677-1)
+**DrakesCraft Labs** · Mantenido por [**JackStar6677-1**](https://github.com/JackStar6677-1)
 
 </div>
