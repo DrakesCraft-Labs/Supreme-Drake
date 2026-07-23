@@ -64,6 +64,6 @@ Ubica el archivo compilado `Supreme-Drake-v2.1.0.jar` en la carpeta `plugins/` d
 
 <div align="center">
 
-**DrakesCraft Labs** · Mantenido por [**JackStar6677-1**](https://github.com/JackStar6677-1)
+**DrakesCraft Labs** · Maintained by [**JackStar6677-1**](https://github.com/JackStar6677-1)
 
 </div>
