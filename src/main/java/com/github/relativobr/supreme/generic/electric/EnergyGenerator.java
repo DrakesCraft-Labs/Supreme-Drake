@@ -1,6 +1,5 @@
 package com.github.relativobr.supreme.generic.electric;
 
-import com.github.relativobr.supreme.Supreme;
 import com.github.relativobr.supreme.util.UtilEnergy;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
@@ -18,15 +17,19 @@ import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.DirtyChestMenu
 import dev.drake.infinitylib.machines.MenuBlock;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class EnergyGenerator extends MenuBlock implements EnergyNetProvider {
 
   private int energy;
   private int buffer;
-  private int generate = 0;
-  private int currentDelay = 0;
   private GenerationType type;
+  private final Map<Block, Integer> generationByBlock = new ConcurrentHashMap<>();
 
 
   public EnergyGenerator(ItemGroup categories, SlimefunItemStack item, ItemStack[] recipe) {
@@ -86,18 +89,16 @@ public final class EnergyGenerator extends MenuBlock implements EnergyNetProvide
   @Override
   public int getGeneratedOutput(Location l, Config data) {
 
-    if(this.generate > 0 && (this.currentDelay < Supreme.getSupremeOptions().getDelayTimeValidGenerators())){
-      this.currentDelay++;
-    } else {
-      // check block
-      this.generate = this.type.generate(l.getWorld(), l.getBlock(), this.energy);
-      this.currentDelay = 0;
-    }
+    // Generator instances are shared by every placed block of the same item.
+    // Keep the result per block so one invalid generator cannot inherit another's output.
+    Block block = l.getBlock();
+    int generated = generationByBlock.compute(block,
+        (ignored, previous) -> type == null ? 0 : type.generate(l.getWorld(), block, this.energy));
 
 
     BlockMenu inv = BlockStorage.getInventory(l);
     if (inv != null && inv.hasViewer()) {
-      if (this.generate == 0) {
+      if (generated == 0) {
         inv.replaceExistingItem(13, new CustomItemStack(
                 Material.RED_STAINED_GLASS_PANE,
                 "&cNot generating",
@@ -110,14 +111,20 @@ public final class EnergyGenerator extends MenuBlock implements EnergyNetProvide
                 Material.GREEN_STAINED_GLASS_PANE,
                 "&aGeneration",
                 "&7Type: &6" + this.type,
-                "&7Generating: &6" + UtilEnergy.format(this.generate) + " J/tick ",
+                "&7Generating: &6" + UtilEnergy.format(generated) + " J/tick ",
                 "&7Stored: &6" + UtilEnergy.format(getCharge(l)) + " J",
                 "&7Capacity: &6" + UtilEnergy.format(this.buffer) + " J"
         ));
       }
     }
 
-    return this.generate;
+    return generated;
+  }
+
+  @Override
+  protected void onBreak(BlockBreakEvent event, BlockMenu menu) {
+    generationByBlock.remove(event.getBlock());
+    super.onBreak(event, menu);
   }
 
   @Override
