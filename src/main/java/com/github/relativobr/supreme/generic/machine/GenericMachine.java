@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -152,6 +153,13 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
 
   protected void updateStatusInvalidInput(BlockMenu menu) {
     menu.replaceExistingItem(getStatusSlot(),getDisplayOrWarn(null,"&cInput a valid material to start"));
+  }
+
+  /** Shows the missing amount when a player has started, but not completed, a recipe. */
+  protected void updateStatusMissingMaterial(BlockMenu menu, MissingIngredient missing) {
+    String material = missing.item().getType().name().toLowerCase(Locale.ROOT).replace('_', ' ');
+    menu.replaceExistingItem(getStatusSlot(), getDisplayOrWarn(null,
+        "&eAdd " + missing.amount() + " more " + material + " to start"));
   }
 
   protected void updateStatusOutputFull(BlockMenu menu) {
@@ -373,7 +381,10 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
       consumedItemsMap.put(b, new HashMap<>());
       attemptCount.put(b, 0);
     } else {
-      if (getInputSlots().length <= 5) {
+      MissingIngredient missing = findMissingIngredient(inv);
+      if (missing != null) {
+        updateStatusMissingMaterial(inv, missing);
+      } else if (getInputSlots().length <= 5) {
         updateStatusReset(inv);
       } else {
         updateStatusInvalidInput(inv);
@@ -526,6 +537,40 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
     return true;
   }
 
+  /**
+   * Finds a recipe the player has partially supplied. This avoids reporting a
+   * valid stack as invalid when the recipe requires several complete stacks.
+   */
+  private MissingIngredient findMissingIngredient(BlockMenu inv) {
+    for (AbstractItemRecipe recipe : machineRecipes) {
+      boolean matchedAnyIngredient = false;
+      for (RequiredIngredient ingredient : aggregateIngredients(recipe.getInputNotNull())) {
+        int available = countAvailable(inv, ingredient.item());
+        if (available > 0) {
+          matchedAnyIngredient = true;
+        }
+        if (available < ingredient.amount()) {
+          if (matchedAnyIngredient) {
+            return new MissingIngredient(ingredient.item(), ingredient.amount() - available);
+          }
+          break;
+        }
+      }
+    }
+    return null;
+  }
+
+  private int countAvailable(BlockMenu inv, ItemStack required) {
+    int available = 0;
+    for (int slot : getInputSlots()) {
+      ItemStack item = inv.getItemInSlot(slot);
+      if (item != null && SlimefunUtils.isItemSimilar(item, required, false, false)) {
+        available += item.getAmount();
+      }
+    }
+    return available;
+  }
+
   /** Groups recipe requirements by Slimefun identity instead of mutable stack amount. */
   private List<RequiredIngredient> aggregateIngredients(ItemStack[] recipe) {
     List<RequiredIngredient> ingredients = new ArrayList<>();
@@ -554,6 +599,8 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
   }
 
   private record RequiredIngredient(ItemStack item, int amount) {}
+
+  protected record MissingIngredient(ItemStack item, int amount) {}
 
   private ItemStack getDisplayOrInfo(ItemStack itemStack, String name) {
     return new CustomItemStack(itemStack != null ? itemStack : new ItemStack(Material.BLACK_STAINED_GLASS_PANE), name);
