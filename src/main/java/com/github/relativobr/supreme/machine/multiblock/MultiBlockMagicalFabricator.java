@@ -9,7 +9,6 @@ import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.core.attributes.NotPlaceable;
 import com.github.drakescraft_labs.slimefun4.core.multiblocks.MultiBlockMachine;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.items.ItemUtils;
 import com.github.drakescraft_labs.slimefun4.utils.SlimefunUtils;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -57,11 +56,7 @@ public class MultiBlockMagicalFabricator extends MultiBlockMachine implements No
 
       recipe:
       for (ItemStack[] input : inputs) {
-        for (int i = 0; i < inv.getContents().length; i++) {
-          if (!SlimefunUtils.isItemSimilar(inv.getContents()[i], input[i], false, true)) {
-            continue recipe;
-          }
-        }
+        if (!matchesRecipe(inv, input)) continue;
 
         ItemStack output = RecipeType.getRecipeOutputList(this, input);
         SlimefunItem outputItem = SlimefunItem.getByItem(output);
@@ -69,25 +64,12 @@ public class MultiBlockMagicalFabricator extends MultiBlockMachine implements No
         if (outputItem == null || outputItem.canUse(p, true)) {
 
           Inventory outputInv = findOutputInventory(output, dispenser, inv);
-          boolean canFit = false;
-          for (int i = 0; i < inv.getContents().length; i++) {
-            if (inv.getContents()[i] != null
-                || inv.getContents()[i].getAmount() == inv.getContents()[i].getMaxStackSize() || outputInv != null) {
-              canFit = true;
-            }
-          }
-
-          if (!canFit) {
+          if (!canFitOutput(outputInv == null ? inv : outputInv, output, input, outputInv == null)) {
             Slimefun.getLocalization().sendMessage(p, "machines.full-inventory", true);
             return;
           }
 
-          for (int i = 0; i < inv.getContents().length; i++) {
-            ItemStack item = inv.getItem(i);
-            if (item != null) {
-              ItemUtils.consumeItem(item, input[i].getAmount(), false);
-            }
-          }
+          consumeRecipe(inv, input);
 
           Bukkit.getScheduler().runTaskLater(Supreme.inst(),
               () -> p.getWorld().playSound(dispenser.getLocation(), Sound.BLOCK_LAVA_EXTINGUISH, 1F, 1F), 55L);
@@ -108,5 +90,42 @@ public class MultiBlockMagicalFabricator extends MultiBlockMachine implements No
     }
 
     Slimefun.getLocalization().sendMessage(p, "machines.pattern-not-found", true);
+  }
+
+  /** Validates the full dispenser layout and all required stack amounts before consuming anything. */
+  private boolean matchesRecipe(Inventory inventory, ItemStack[] recipe) {
+    for (int slot = 0; slot < inventory.getSize(); slot++) {
+      ItemStack expected = slot < recipe.length ? recipe[slot] : null;
+      ItemStack actual = inventory.getItem(slot);
+      if (expected == null || expected.getType().isAir()) {
+        if (actual != null && !actual.getType().isAir()) return false;
+        continue;
+      }
+      if (actual == null || actual.getAmount() < expected.getAmount()
+          || !SlimefunUtils.isItemSimilar(actual, expected, false, true)) return false;
+    }
+    return true;
+  }
+
+  /** Simulates the destination after consumption so no crafted output is lost or duplicated. */
+  private boolean canFitOutput(Inventory destination, ItemStack output, ItemStack[] input, boolean consumeInput) {
+    Inventory simulation = Bukkit.createInventory(null, destination.getSize());
+    for (int slot = 0; slot < destination.getSize(); slot++) {
+      ItemStack item = destination.getItem(slot);
+      simulation.setItem(slot, item == null ? null : item.clone());
+    }
+    if (consumeInput) consumeRecipe(simulation, input);
+    return simulation.addItem(output.clone()).isEmpty();
+  }
+
+  private void consumeRecipe(Inventory inventory, ItemStack[] recipe) {
+    for (int slot = 0; slot < recipe.length && slot < inventory.getSize(); slot++) {
+      ItemStack expected = recipe[slot];
+      if (expected == null || expected.getType().isAir()) continue;
+      ItemStack current = inventory.getItem(slot);
+      int remaining = current.getAmount() - expected.getAmount();
+      if (remaining <= 0) inventory.setItem(slot, null);
+      else current.setAmount(remaining);
+    }
   }
 }
