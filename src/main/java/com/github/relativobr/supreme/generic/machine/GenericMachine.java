@@ -87,35 +87,39 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
           return getOutputSlots();
         }
 
-        int fullSlots = 0;
-        List<Integer> slots = new LinkedList<>();
+        // Slots que ya tienen el material y aun aceptan mas, y slots libres. Antes solo se
+        // devolvian los que ya contenian el item: en cuanto uno se llenaba, la insercion
+        // automatica quedaba rechazada aunque el resto de la entrada estuviera vacia, y la
+        // maquina no podia reunir los materiales de la receta. A mano si funcionaba, porque
+        // el filtro solo aplica al transporte de items.
+        List<Integer> withRoom = new LinkedList<>();
+        List<Integer> empty = new LinkedList<>();
 
         for (int slot : getInputSlots()) {
           ItemStack stack = menu.getItemInSlot(slot);
-          if (stack != null && SlimefunUtils.isItemSimilar(stack, item, false, true)) {
-            if (stack.getAmount() >= stack.getMaxStackSize()) {
-              fullSlots++;
-            }
-
-            slots.add(slot);
+          if (stack == null || stack.getType() == Material.AIR) {
+            empty.add(slot);
+          } else if (SlimefunUtils.isItemSimilar(stack, item, false, true)
+              && stack.getAmount() < stack.getMaxStackSize()) {
+            withRoom.add(slot);
           }
         }
 
-        if (slots.isEmpty()) {
-          return getInputSlots();
-        } else if (fullSlots == slots.size()) {
-          // All slots with that item are already full
+        if (withRoom.isEmpty() && empty.isEmpty()) {
+          // Entrada realmente llena: no hay donde dejar el item.
           return new int[0];
-        } else {
-          slots.sort(compareSlots(menu));
-          int[] array = new int[slots.size()];
-
-          for (int i = 0; i < slots.size(); i++) {
-            array[i] = slots.get(i);
-          }
-
-          return array;
         }
+
+        // Se completan primero los stacks empezados para no fragmentar la entrada.
+        withRoom.sort(compareSlots(menu));
+        List<Integer> destinations = new LinkedList<>(withRoom);
+        destinations.addAll(empty);
+
+        int[] array = new int[destinations.size()];
+        for (int i = 0; i < destinations.size(); i++) {
+          array[i] = destinations.get(i);
+        }
+        return array;
       }
     };
   }
@@ -503,7 +507,12 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
           int amountToConsume = Math.min(inputItem.getAmount(), requiredAmount - foundAmount);
           if (amountToConsume > 0) {
             inv.consumeItem(slot, amountToConsume);
-            getConsumedItems(b).merge(inputItem, amountToConsume, Integer::sum);
+            // La clave se normaliza a 1 porque ItemStack.equals compara el amount: usando el
+            // stack tal cual, cada ciclo con un tamano distinto creaba una entrada nueva y el
+            // mapa de consumidos se fragmentaba en vez de acumular.
+            ItemStack key = inputItem.clone();
+            key.setAmount(1);
+            getConsumedItems(b).merge(key, amountToConsume, Integer::sum);
           }
           foundAmount += amountToConsume;
           if (foundAmount >= requiredAmount) {
