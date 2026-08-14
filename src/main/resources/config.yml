@@ -22,6 +22,12 @@ options:
   enable-tech: true
   custom-bc: false
   machine-max-attempt-consumed: 30
+  # Cuanto material pide cada uno de los 9 huecos del Fabricador de Cores Electricos.
+  # Antes cada hueco pedia una pila llena, asi que el precio de un core lo decidia el
+  # tamaño de pila del material en vanilla y no lo que vale: un core de netherita
+  # costaba 576 lingotes y uno de miel 96 botellas, solo porque la miel apila de 16.
+  # Se recorta al tamaño de pila del material, asi que siempre cabe en el hueco.
+  core-amount-per-slot: 16
 # -------------------------------
 # quarry-custom-output
 # -------------------------------

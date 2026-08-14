@@ -124,14 +124,10 @@ public class ElectricCoreFabricator extends GenericMachine {
   }
 
   private static AbstractItemRecipe addRecipe(CustomCoreRecipe customCoreRecipe) {
-    final ItemStack itemStack1 = new ItemStack(customCoreRecipe.getMainItem(),
-        customCoreRecipe.getMainItem().getMaxStackSize());
-    final ItemStack itemStack2 = new ItemStack(customCoreRecipe.getSecondItem(),
-        customCoreRecipe.getSecondItem().getMaxStackSize());
-    final ItemStack itemStack3 = new ItemStack(customCoreRecipe.getLastItem(),
-        customCoreRecipe.getLastItem().getMaxStackSize());
-    return new AbstractItemRecipe(
-        new ItemStack[]{itemStack1, itemStack1, itemStack1, itemStack2, itemStack2, itemStack2, itemStack3, itemStack3,
-            itemStack3}, customCoreRecipe.getMaterial());
+    // Delega en CustomCoreRecipe: antes esta clase repetia el mismo calculo, y con dos copias
+    // cualquier cambio de precio se aplicaba en un sitio y no en el otro.
+    return new AbstractItemRecipe(CustomCoreRecipe.getRecipe(customCoreRecipe),
+        customCoreRecipe.getMaterial());
   }
+
 }

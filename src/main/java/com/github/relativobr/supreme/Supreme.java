@@ -62,6 +62,7 @@ public class Supreme extends JavaPlugin implements SlimefunAddon {
                 .enableTech(typeSection.getBoolean("enable-tech", true))
                 .customBc(typeSection.getBoolean("custom-bc", false))
                 .machineMaxAttemptConsumed(typeSection.getInt("machine-max-attempt-consumed", 30))
+                .coreAmountPerSlot(typeSection.getInt("core-amount-per-slot", 16))
                 .build();
       }
     }

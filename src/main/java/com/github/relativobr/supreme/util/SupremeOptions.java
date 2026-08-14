@@ -34,6 +34,7 @@ public class SupremeOptions {
     boolean enableTech;
     boolean customBc;
     int machineMaxAttemptConsumed;
+    int coreAmountPerSlot;
 
     public static SupremeOptions defaultValue() {
         return SupremeOptions.builder()
@@ -60,6 +61,7 @@ public class SupremeOptions {
                 .enableTech(true)
                 .customBc(false)
                 .machineMaxAttemptConsumed(30)
+                .coreAmountPerSlot(16)
                 .build();
     }
 }
