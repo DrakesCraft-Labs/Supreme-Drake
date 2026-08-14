@@ -316,7 +316,7 @@ public class MobCollector extends SimpleItemWithLargeContainerMachine {
         MobCollectorMachineRecipe produce = (MobCollectorMachineRecipe) iterator.next();
         ItemStack itemInSlot = inv.getItemInSlot(slot);
         final ItemStack itemInInput = produce.getInput()[0];
-        if (itemInSlot != null && itemInInput != null && (itemInSlot.getType() == itemInInput.getType())
+        if (MobCollectorInputMatcher.matches(itemInSlot, itemInInput)
             && InvUtils.fits(inv.toInventory(), produce.getOutput()[0], this.getOutputSlots())) {
           Block invBlock = inv.getBlock();
           produce.getClass();
