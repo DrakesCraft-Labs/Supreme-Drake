@@ -156,29 +156,34 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
   }
 
   protected void updateStatusInvalidInput(BlockMenu menu) {
-    menu.replaceExistingItem(getStatusSlot(),getDisplayOrWarn(null,"&cInput a valid material to start"));
+    menu.replaceExistingItem(getStatusSlot(),getDisplayOrWarn(null,"&cMete un material valido para empezar"));
   }
 
   /** Shows the missing amount when a player has started, but not completed, a recipe. */
   protected void updateStatusMissingMaterial(BlockMenu menu, MissingIngredient missing) {
+    // El nombre venia del enum Material, o sea en ingles y en mayusculas ("PORKCHOP"). Si el
+    // objeto trae nombre visible se usa ese, que es el que el jugador tiene delante.
     String material = missing.item().getType().name().toLowerCase(Locale.ROOT).replace('_', ' ');
+    if (missing.item().hasItemMeta() && missing.item().getItemMeta().hasDisplayName()) {
+      material = missing.item().getItemMeta().getDisplayName();
+    }
     menu.replaceExistingItem(getStatusSlot(), getDisplayOrWarn(null,
-        "&eAdd " + missing.amount() + " more " + material + " to start"));
+        "&eFaltan " + missing.amount() + " de " + material));
   }
 
   protected void updateStatusOutputFull(BlockMenu menu) {
-    menu.replaceExistingItem(getStatusSlot(), getDisplayOrWarn(null,"&cOutput is full"));
+    menu.replaceExistingItem(getStatusSlot(), getDisplayOrWarn(null,"&cLa salida esta llena"));
   }
 
   protected void updateStatusConnectEnergy(BlockMenu menu, ItemStack itemStack) {
-    menu.replaceExistingItem(getStatusSlot(), getDisplayOrWarn(itemStack, "&cConnect energy to continue"));
+    menu.replaceExistingItem(getStatusSlot(), getDisplayOrWarn(itemStack, "&cConecta energia para continuar"));
   }
 
   protected void updateStatusLoadMaterial(BlockMenu menu, ItemStack itemStack, int attempts, int progressCount, int totalProgress) {
     var infoDetail = new CustomItemStack(itemStack,
-        "&cLoad more material to start", "",
-        "&7Attempts: &e" + attempts + " &7/ &e" + Supreme.getSupremeOptions().getMachineMaxAttemptConsumed(),
-        "&7Progress: &e" + progressCount + " &7/ &e" + totalProgress, "");
+        "&cFalta material para empezar", "",
+        "&7Intentos: &e" + attempts + " &7/ &e" + Supreme.getSupremeOptions().getMachineMaxAttemptConsumed(),
+        "&7Progreso: &e" + progressCount + " &7/ &e" + totalProgress, "");
     menu.replaceExistingItem(getStatusSlot(), infoDetail);
   }
 
