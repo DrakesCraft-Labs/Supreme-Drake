@@ -87,40 +87,37 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
           return getOutputSlots();
         }
 
-        // Slots que ya tienen el material y aun aceptan mas, y slots libres. Antes solo se
-        // devolvian los que ya contenian el item: en cuanto uno se llenaba, la insercion
-        // automatica quedaba rechazada aunque el resto de la entrada estuviera vacia, y la
-        // maquina no podia reunir los materiales de la receta. A mano si funcionaba, porque
-        // el filtro solo aplica al transporte de items.
-        List<Integer> withRoom = new LinkedList<>();
-        List<Integer> empty = new LinkedList<>();
-
-        for (int slot : getInputSlots()) {
-          ItemStack stack = menu.getItemInSlot(slot);
-          if (stack == null || stack.getType() == Material.AIR) {
-            empty.add(slot);
-          } else if (SlimefunUtils.isItemSimilar(stack, item, false, true)
-              && stack.getAmount() < stack.getMaxStackSize()) {
-            withRoom.add(slot);
-          }
-        }
-
-        if (withRoom.isEmpty() && empty.isEmpty()) {
-          // Entrada realmente llena: no hay donde dejar el item.
-          return new int[0];
-        }
-
-        // Se completan primero los stacks empezados para no fragmentar la entrada.
-        withRoom.sort(compareSlots(menu));
-        List<Integer> destinations = new LinkedList<>(withRoom);
-        destinations.addAll(empty);
-
-        int[] array = new int[destinations.size()];
-        for (int i = 0; i < destinations.size(); i++) {
-          array[i] = destinations.get(i);
-        }
-        return array;
+        return getInsertSlotsForItem(menu, item);
       }
+
+  protected int[] getInsertSlotsForItem(DirtyChestMenu menu, ItemStack item) {
+    List<Integer> withRoom = new LinkedList<>();
+    List<Integer> empty = new LinkedList<>();
+
+    for (int slot : getInputSlots()) {
+      ItemStack stack = menu.getItemInSlot(slot);
+      if (stack == null || stack.getType() == Material.AIR) {
+        empty.add(slot);
+      } else if (SlimefunUtils.isItemSimilar(stack, item, false, true)
+          && stack.getAmount() < stack.getMaxStackSize()) {
+        withRoom.add(slot);
+      }
+    }
+
+    if (withRoom.isEmpty() && empty.isEmpty()) {
+      return new int[0];
+    }
+
+    withRoom.sort(compareSlots(menu));
+    List<Integer> destinations = new LinkedList<>(withRoom);
+    destinations.addAll(empty);
+
+    int[] array = new int[destinations.size()];
+    for (int i = 0; i < destinations.size(); i++) {
+      array[i] = destinations.get(i);
+    }
+    return array;
+  }
     };
   }
 
