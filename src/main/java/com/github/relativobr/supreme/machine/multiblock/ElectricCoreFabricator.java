@@ -19,6 +19,7 @@ import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.core.attributes.MachineTier;
 import com.github.drakescraft_labs.slimefun4.core.attributes.MachineType;
 import com.github.drakescraft_labs.slimefun4.implementation.SlimefunItems;
+import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.DirtyChestMenu;
 import com.github.drakescraft_labs.slimefun4.utils.LoreBuilder;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,11 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 public class ElectricCoreFabricator extends GenericMachine {
+
+  @Override
+  protected int[] getInsertSlotsForItem(DirtyChestMenu menu, ItemStack item) {
+    return getInputSlots();
+  }
 
   public static final SlimefunItemStack ELECTRIC_CORE_MACHINE = new SupremeItemStack("SUPREME_ELECTRIC_CORE_I",
       Material.SHROOMLIGHT, "&bElectric Core Machine", "", "&fCraft resource of core", "",
