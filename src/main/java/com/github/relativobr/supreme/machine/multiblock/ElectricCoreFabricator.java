@@ -29,6 +29,14 @@ import org.bukkit.inventory.ItemStack;
 
 public class ElectricCoreFabricator extends GenericMachine {
 
+  /**
+   * Esta maquina acepta cada material en cualquier ranura de entrada.
+   *
+   * Su rejilla es de 3x3 y visualmente cada fila corresponde a un material, pero esa disposicion
+   * es solo para el jugador: matchingRecipe y consumptionRecipe buscan los materiales en las nueve
+   * ranuras. Los hoppers, en cambio, insertaban en orden secuencial sin respetar las filas, con lo
+   * que la receta no llegaba a completarse nunca por transporte automatico.
+   */
   @Override
   protected int[] getInsertSlotsForItem(DirtyChestMenu menu, ItemStack item) {
     return getInputSlots();

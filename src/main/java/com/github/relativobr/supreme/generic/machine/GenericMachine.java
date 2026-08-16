@@ -90,6 +90,23 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
         return getInsertSlotsForItem(menu, item);
       }
 
+    };
+  }
+
+  /**
+   * Ranuras de entrada donde puede caer un item que llega por transporte automatico.
+   *
+   * Se devuelven tanto las que ya contienen el material y admiten mas como las libres. Antes solo
+   * se devolvian las que ya lo contenian: en cuanto una se llenaba, la insercion automatica
+   * quedaba rechazada aunque el resto de la entrada estuviera vacia, y la maquina no podia reunir
+   * los materiales de la receta. A mano si funcionaba, porque el filtro solo aplica al transporte.
+   *
+   * Se completan primero los stacks empezados para no fragmentar la entrada.
+   *
+   * Las maquinas cuya receta no depende de la posicion pueden sobrescribir esto y aceptar
+   * cualquier ranura; es lo que hace ElectricCoreFabricator, cuya rejilla 3x3 confundia a los
+   * hoppers.
+   */
   protected int[] getInsertSlotsForItem(DirtyChestMenu menu, ItemStack item) {
     List<Integer> withRoom = new LinkedList<>();
     List<Integer> empty = new LinkedList<>();
@@ -117,8 +134,6 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
       array[i] = destinations.get(i);
     }
     return array;
-  }
-    };
   }
 
   @Nonnull
