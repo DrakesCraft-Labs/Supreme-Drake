@@ -67,3 +67,39 @@ Ubica el archivo compilado `Supreme-Drake-v2.1.0.jar` en la carpeta `plugins/` d
 **DrakesCraft Labs** · Mantenido por [**JackStar6677-1**](https://github.com/JackStar6677-1)
 
 </div>
+
+## Qué añade al juego
+
+Supreme is an addon for Slimefun which adds 100+ various new resources that will allow you to craft powerful new items, weapons, tools and armor. These can be made up from titanium, aurum, adamantium, thornium with some being magical, rare, epic, legendary or supreme! It also adds 12 new electric generators, 5 new capacitors and even more...
+Registra alrededor de **219 objetos** en la guía de Slimefun.
+
+Todo se fabrica y se investiga desde la guía normal (`/sf guide`), como cualquier otro contenido
+de Slimefun: no hace falta ningún comando especial para empezar.
+
+## Compatibilidad
+
+| | |
+|---|---|
+| Servidor | Paper / Purpur **1.21.11** |
+| Java | **21** |
+| Requiere | [Slimefun4-Drake](https://github.com/DrakesCraft-Labs/Slimefun4-Drake) |
+| Lado | Solo servidor — quien juega no instala nada |
+| Versión | ${project.version} |
+
+## Instalación
+
+1. Descarga el `.jar` de la última versión.
+2. Déjalo en la carpeta `plugins/` del servidor, junto a Slimefun.
+3. Reinicia el servidor. Los objetos aparecen solos en la guía.
+
+> Este addon está portado al fork de Slimefun de DrakesCraft. Con el Slimefun original puede no
+> cargar, porque cambia el espacio de nombres de las clases.
+
+## Créditos
+- RelativoBR
+- Especttra
+- WilianSantosBR e Mynothauro
+
+Port y mantenimiento por **DrakesCraft Labs**. La autoría original es de quien figura arriba; el detalle está en [docs/UPSTREAM_ATTRIBUTION.md](https://raw.githubusercontent.com/DrakesCraft-Labs/Supreme-Drake/main/docs/UPSTREAM_ATTRIBUTION.md).
+
+Licencia **GPL-3.0-only**.
