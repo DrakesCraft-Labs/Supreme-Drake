@@ -50,6 +50,29 @@ public final class CustomCoreRecipe {
   }
 
   /**
+   * Rejilla 3x3 de una receta como lista plana: las tres primeras posiciones son mainItem, las
+   * tres siguientes secondItem y las tres ultimas lastItem.
+   *
+   * Es pura (no toca Supreme ni el servidor) para poder mapear cada material a sus huecos de la
+   * maquina y para poder probarla sin levantar el plugin.
+   */
+  public static Material[] gridMaterials(Material mainItem, Material secondItem, Material lastItem) {
+    return new Material[]{
+        mainItem, mainItem, mainItem,
+        secondItem, secondItem, secondItem,
+        lastItem, lastItem, lastItem
+    };
+  }
+
+  /** Version con objeto, para que los sitios que usan una receta no repitan el calculo. */
+  public static Material[] gridMaterials(CustomCoreRecipe customCoreRecipe) {
+    return gridMaterials(
+        customCoreRecipe.getMainItem(),
+        customCoreRecipe.getSecondItem(),
+        customCoreRecipe.getLastItem());
+  }
+
+  /**
    * Cuanto material pide un hueco del fabricador.
    *
    * Antes cada hueco pedia una pila llena, con lo que el precio de un core lo acababa decidiendo
@@ -59,9 +82,16 @@ public final class CustomCoreRecipe {
    *
    * Ahora los nueve huecos piden lo mismo, y se recorta al tamaño de pila del material para que
    * la cantidad siempre quepa en el hueco: un material que no apile pedira uno por hueco.
+   *
+   * Recibe el tamaño de pila y la configuracion por parametro: es pura, porque el
+   * getMaxStackSize de un material no se puede consultar sin servidor.
    */
+  public static int slotAmount(int maxStackSize, int coreAmountPerSlot) {
+    return Math.min(coreAmountPerSlot, maxStackSize);
+  }
+
   private static int cantidadPorHueco(Material material) {
-    return Math.min(Supreme.getSupremeOptions().getCoreAmountPerSlot(), material.getMaxStackSize());
+    return slotAmount(material.getMaxStackSize(), Supreme.getSupremeOptions().getCoreAmountPerSlot());
   }
 
   /** Un hueco de la receta: el material y lo que pide. */
@@ -70,14 +100,12 @@ public final class CustomCoreRecipe {
   }
 
   public static ItemStack[] getRecipe(CustomCoreRecipe customCoreRecipe) {
-    final ItemStack principal = hueco(customCoreRecipe.getMainItem());
-    final ItemStack segundo = hueco(customCoreRecipe.getSecondItem());
-    final ItemStack ultimo = hueco(customCoreRecipe.getLastItem());
-    return new ItemStack[]{
-        principal, principal, principal,
-        segundo, segundo, segundo,
-        ultimo, ultimo, ultimo
-    };
+    Material[] grid = gridMaterials(customCoreRecipe);
+    ItemStack[] recipe = new ItemStack[grid.length];
+    for (int i = 0; i < grid.length; i++) {
+      recipe[i] = hueco(grid[i]);
+    }
+    return recipe;
   }
 
 
