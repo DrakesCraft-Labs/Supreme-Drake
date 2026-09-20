@@ -557,7 +557,23 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
   }
 
   private void revertConsumedItem(Block b, BlockMenu inv) {
-    for (Map.Entry<ItemStack, Integer> consumedEntry : getConsumedItems(b).entrySet()) {
+    /*
+     * Esto corre en el ticker ASINCRONO de Slimefun. dropItemNaturally crea una
+     * entidad, que solo el hilo principal puede hacer: hacerlo aqui disparaba el
+     * AsyncCatcher, mataba el bloque y --como el clear() quedaba sin ejecutar-- el
+     * siguiente tick volvia a revertir los MISMOS items. Ese es el duplicado que
+     * reporto Chagui.
+     *
+     * Ahora: 1) se toma una copia de lo consumido, 2) se limpia el estado de
+     * inmediato para que nada se pueda re-revertir, 3) lo que cabe en la entrada
+     * se devuelve aqui (pushItem sobre el BlockMenu es seguro), y 4) SOLO los
+     * sobrantes se sueltan al suelo en el hilo principal.
+     */
+    Map<ItemStack, Integer> consumed = new HashMap<>(getConsumedItems(b));
+    getConsumedItems(b).clear();
+
+    List<ItemStack> aSoltar = new ArrayList<>();
+    for (Map.Entry<ItemStack, Integer> consumedEntry : consumed.entrySet()) {
       ItemStack consumedItem = consumedEntry.getKey();
       int amount = consumedEntry.getValue();
       if (consumedItem != null && consumedItem.getType() != Material.AIR) {
@@ -568,14 +584,21 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
           returnItem.setAmount(stackSize);
           ItemStack sobrante = inv.pushItem(returnItem, getInputSlots());
           if (sobrante != null && sobrante.getType() != Material.AIR && sobrante.getAmount() > 0) {
-            // La entrada se pudo rellenar por cargo mientras la maquina cargaba: no se pierde nada.
-            b.getWorld().dropItemNaturally(b.getLocation().add(0.5, 1, 0.5), sobrante);
+            aSoltar.add(sobrante);
           }
           amount -= stackSize;
         }
       }
     }
-    getConsumedItems(b).clear();
+
+    if (!aSoltar.isEmpty()) {
+      var loc = b.getLocation().add(0.5, 1, 0.5);
+      org.bukkit.Bukkit.getScheduler().runTask(Supreme.inst(), () -> {
+        for (ItemStack drop : aSoltar) {
+          b.getWorld().dropItemNaturally(loc, drop);
+        }
+      });
+    }
   }
 
   private void endProcessTicks(Block b, BlockMenu inv, ItemStack[] result) {
