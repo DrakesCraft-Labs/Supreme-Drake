@@ -336,7 +336,85 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
         return new MachineRecipe(getTimeProcess(), recipe.getInputNotNull(), recipe.getOutputNotNull());
       }
     }
+    AbstractItemRecipe parcial = findUnambiguousPartialRecipe(inv);
+    if (parcial != null) {
+      return new MachineRecipe(getTimeProcess(), parcial.getInputNotNull(), parcial.getOutputNotNull());
+    }
     return null;
+  }
+
+  /**
+   * Receta que se puede arrancar aunque todavia no este todo el material.
+   *
+   * Reporte de Macacrack334 (2026-09-19): el core de patata pide 96 botellas de miel (apilan de
+   * 16) y 48 patatas, o sea 7 de las 9 ranuras repartidas de una forma concreta. El cargo llena
+   * las ranuras en el orden en que llegan los items, asi que casi nunca coincide la reparticion y
+   * la receta jamas "encajaba" entera: la maquina no arrancaba y la miel se quedaba atascada.
+   *
+   * Ahora, si en la entrada hay al menos una unidad de CADA ingrediente distinto de una receta y
+   * esa receta es la unica que se puede deducir, la maquina arranca y va consumiendo lo que llega
+   * (el ciclo de carga ya existia: intentos + progreso). Es ambiguo, y por tanto no arranca, cuando
+   * otra receta candidata usa un conjunto mayor de ingredientes: con solo A cargado no se elige (A)
+   * si tambien existe (A, B), porque el jugador puede estar cargando la segunda.
+   */
+  private AbstractItemRecipe findUnambiguousPartialRecipe(BlockMenu inv) {
+    List<AbstractItemRecipe> candidatas = new ArrayList<>();
+    List<List<RequiredIngredient>> ingredientes = new ArrayList<>();
+    for (AbstractItemRecipe recipe : machineRecipes) {
+      List<RequiredIngredient> requeridos = aggregateIngredients(recipe.getInputNotNull());
+      if (requeridos.isEmpty()) {
+        continue;
+      }
+      boolean todosPresentes = true;
+      for (RequiredIngredient ingrediente : requeridos) {
+        if (countAvailable(inv, ingrediente.item()) <= 0) {
+          todosPresentes = false;
+          break;
+        }
+      }
+      if (todosPresentes) {
+        candidatas.add(recipe);
+        ingredientes.add(requeridos);
+      }
+    }
+    if (candidatas.isEmpty()) {
+      return null;
+    }
+    // Se queda la candidata cuyo conjunto de ingredientes no este contenido en el de otra.
+    AbstractItemRecipe elegida = null;
+    for (int i = 0; i < candidatas.size(); i++) {
+      boolean contenida = false;
+      for (int j = 0; j < candidatas.size(); j++) {
+        if (i != j && ingredientes.get(j).size() > ingredientes.get(i).size()
+            && contieneIngredientes(ingredientes.get(j), ingredientes.get(i))) {
+          contenida = true;
+          break;
+        }
+      }
+      if (!contenida) {
+        if (elegida != null) {
+          return null; // dos recetas maximales: ambiguo, que el jugador complete una
+        }
+        elegida = candidatas.get(i);
+      }
+    }
+    return elegida;
+  }
+
+  private boolean contieneIngredientes(List<RequiredIngredient> mayor, List<RequiredIngredient> menor) {
+    for (RequiredIngredient a : menor) {
+      boolean hallado = false;
+      for (RequiredIngredient b : mayor) {
+        if (SlimefunUtils.isItemSimilar(a.item(), b.item(), false, false)) {
+          hallado = true;
+          break;
+        }
+      }
+      if (!hallado) {
+        return false;
+      }
+    }
+    return true;
   }
 
   protected int getProgressTime(Block b) {
@@ -433,38 +511,49 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
       updateStatusConnectEnergy(inv, null);
       return;
     }
-    removeCharge(b.getLocation(), getEnergyConsumption());
 
     final int ticks = getProcessing(b).getTicks();
     int ticksRemaining = getProgressTime(b);
     if (ticks == ticksRemaining) {
-      startProcessTicks(b, inv, ticksRemaining);
-    } else if (ticksRemaining == 0) {
+      // Fase de carga: la energia solo se cobra cuando el material se consume de verdad.
+      // Antes cada tick de espera cobraba, y con arranque parcial la espera puede durar.
+      if (startProcessTicks(b, inv, ticksRemaining)) {
+        removeCharge(b.getLocation(), getEnergyConsumption());
+      }
+      return;
+    }
+    removeCharge(b.getLocation(), getEnergyConsumption());
+    if (ticksRemaining == 0) {
       endProcessTicks(b, inv, result);
     } else {
       doProcessTicks(b, inv, ticks, ticksRemaining, result[0]);
     }
   }
 
-  private void startProcessTicks(Block b, BlockMenu inv, int ticksRemaining) {
-
-    int attempts = attemptCount.getOrDefault(b, 0) + 1;
+  /** @return true si en este tick se termino de consumir toda la receta. */
+  private boolean startProcessTicks(Block b, BlockMenu inv, int ticksRemaining) {
+    int antes = getConsumedItems(b).values().stream().mapToInt(Integer::intValue).sum();
     if (consumptionRecipe(b, inv)) {
       progressTime.put(b, Math.max(ticksRemaining - this.getSpeed(), 0));
       attemptCount.put(b, 0);
       consumedItemsMap.put(b, new HashMap<>());
-    } else {
-      if (attempts >= Supreme.getSupremeOptions().getMachineMaxAttemptConsumed()) {
-        revertConsumedItem(b, inv);
-        removeMapBlock(b);
-        updateStatusInvalidInput(inv);
-      } else {
-        attemptCount.put(b, attempts);
-        var progressCount = getConsumedItems(b).values().stream().mapToInt(Integer::intValue).sum();
-        var totalProgress = Arrays.stream(getProcessing(b).getInput()).mapToInt(ItemStack::getAmount).sum();
-        updateStatusLoadMaterial(inv, getProcessing(b).getOutput()[0], attempts, progressCount, totalProgress);
-      }
+      return true;
     }
+    int progressCount = getConsumedItems(b).values().stream().mapToInt(Integer::intValue).sum();
+    // Un intento solo cuenta si no entro nada: mientras el cargo siga trayendo material la
+    // maquina espera. Antes 30 ticks seguidos sin completar la receta la abortaban aunque el
+    // material estuviera llegando de a poco (miel de a 16).
+    int attempts = progressCount > antes ? 0 : attemptCount.getOrDefault(b, 0) + 1;
+    if (attempts >= Supreme.getSupremeOptions().getMachineMaxAttemptConsumed()) {
+      revertConsumedItem(b, inv);
+      removeMapBlock(b);
+      updateStatusInvalidInput(inv);
+    } else {
+      attemptCount.put(b, attempts);
+      var totalProgress = Arrays.stream(getProcessing(b).getInput()).mapToInt(ItemStack::getAmount).sum();
+      updateStatusLoadMaterial(inv, getProcessing(b).getOutput()[0], attempts, progressCount, totalProgress);
+    }
+    return false;
   }
 
   private void revertConsumedItem(Block b, BlockMenu inv) {
@@ -477,7 +566,11 @@ public class GenericMachine extends AContainer implements NotHopperable, RecipeD
           int stackSize = Math.min(maxStackSize, amount);
           ItemStack returnItem = consumedItem.clone();
           returnItem.setAmount(stackSize);
-          inv.pushItem(returnItem, getInputSlots());
+          ItemStack sobrante = inv.pushItem(returnItem, getInputSlots());
+          if (sobrante != null && sobrante.getType() != Material.AIR && sobrante.getAmount() > 0) {
+            // La entrada se pudo rellenar por cargo mientras la maquina cargaba: no se pierde nada.
+            b.getWorld().dropItemNaturally(b.getLocation().add(0.5, 1, 0.5), sobrante);
+          }
           amount -= stackSize;
         }
       }
